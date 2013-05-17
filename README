@@ -2,13 +2,9 @@ NoEval - Copyright 2013 Andrew Rose http://andrewrose.co.uk hello@andrewrose.co.
 
 The aim of NoEval is to provide a language and safe environment for executing user defined code.
 
-Currently, this is no more than a proof of concept.  Initially I had put together a simple class to evaluate user
-defined mathematical expressions based on the concept of lisp s-expressions.  This worked better than anticipated,
-so naturally, I decided to take things to the next level and see if I could add common programming language features
-such as variables, functions, loops and flow control.
+Currently, this is no more than a proof of concept.  Initially I had put together a simple class to evaluate user defined mathematical expressions based on the concept of lisp s-expressions.  This worked better than anticipated, so naturally, I decided to take things to the next level and see if I could add common programming language features such as variables, functions, loops and flow control.
 
-Please note that I am not a lisp programmer and have very limited knowledge of functional programming outside of
-javascript functional abilities.
+Please note that I am not a lisp programmer and have very limited knowledge of functional programming outside of javascript functional abilities.
 
 Advice and constructed criticism more than welcome.
 
