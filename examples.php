@@ -25,10 +25,29 @@ include_once("noeval.php");
 
 $t = new NoEval;
 
-echo $t->parse(["+", 3, 4]);
+echo $t->parse(["+", 3, 4]),"\n";
+
+//boolean
+echo $t->parse(['and',
+	['<', 3, ['*', 2, 5]],
+	['not', ['>=', 2, 6]]
+]),"\n";
+
+echo $t->parse(['or',
+	['<', 4, 3],
+	['>', 2, 4],
+	['!=', 1, 1],
+	['>=', 10, 1]
+]),"\n";
+
+exit();
+
 
 // if
-$t->parse(["if", ["=", 0, ["%", 5, 3]], ["echo", "bar"], ["echo", "foo"]]);
+$t->parse(["if", ["=", 0, ["%", 5, 3]],
+		["echo", "bar"],
+		/* else */ ["echo", "foo"]
+]);
 $t->parse(["if", ["=", ["%", 5, 5], 0], ["echo", "bar"], ["echo", "foo"]]);
 $t->parse(["if", [">", 4, 10], ["echo", "greater than!\n"], ["echo", "less than!\n"]]);
 
@@ -71,6 +90,22 @@ $t->parse(["let", ":z", 0,
 		["let", ":y", ":z"]
 	]
 ],[":x" => 1, ":y" => 2]);
+
+echo(json_encode(["let", ":i", 1, [["echo", "Fizzbuzz example"],
+	["while", ["<", ":i", ["+", 100, 1]],
+		["if", ["=", ["%", ":i", 3], 0],
+			["if", ["=", ["%", ":i", 5], 0],
+				["echo", "FizzBuzz"],
+				["echo", "Fizz"]
+			],
+			["if", ["=", ["%", ":i", 5], 0],
+				["echo", "Buzz"],
+				["echo", ":i"]
+			],
+		],
+		["++", ":i"]
+	]]
+], TRUE));
 
 /*while(1)
 {

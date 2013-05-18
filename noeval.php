@@ -133,6 +133,51 @@ class NoEval
 
 		switch($op)
 		{
+			case 'and':
+			{
+				$result = TRUE;
+				$listSize = sizeof($list);
+				// we can't directly array_shift in a while loop due to NULL/FALSE
+				for($idx=0; $idx<$listSize; $idx++)
+				{
+					if($this->parseVar(array_shift($list), $vars) !== TRUE)
+					{
+						$result = FALSE;
+					}
+				}
+			}
+			break;
+
+			case 'not':
+			{
+				$result = TRUE;
+				$listSize = sizeof($list);
+				for($idx=0; $idx<$listSize; $idx++)
+				{
+					if($this->parseVar(array_shift($list), $vars) !== FALSE)
+					{
+						$result = FALSE;
+					}
+				}
+			}
+			break;
+
+			case 'or':
+			{
+				$result = FALSE;
+				$listSize = sizeof($list);
+				for($idx=0; $idx<$listSize; $idx++)
+				{
+					if($this->parseVar(array_shift($list), $vars) === TRUE)
+					{
+
+						$result = TRUE;
+						continue 2;
+					}
+				}
+			}
+			break;
+
 			case '--':
 			{
 				$ax = array_shift($list);
@@ -166,7 +211,7 @@ class NoEval
 				$ax = array_shift($list);
 				$bx = array_shift($list);
 
-				if($this->parseVar($ax, $vars) >= $this->parseVar($bx, $vars))
+				if($this->parseVar($ax, $vars) > $this->parseVar($bx, $vars))
 				{
 					$result = FALSE;
 				}
@@ -174,6 +219,32 @@ class NoEval
 			break;
 
 			case '>':
+			{
+				$result = TRUE;
+				$ax = array_shift($list);
+				$bx = array_shift($list);
+
+				if($this->parseVar($ax, $vars) < $this->parseVar($bx, $vars))
+				{
+					$result = FALSE;
+				}
+			}
+			break;
+
+			case '<=':
+			{
+				$result = TRUE;
+				$ax = array_shift($list);
+				$bx = array_shift($list);
+
+				if($this->parseVar($ax, $vars) >= $this->parseVar($bx, $vars))
+				{
+					$result = FALSE;
+				}
+			}
+			break;
+
+			case '>=':
 			{
 				$result = TRUE;
 				$ax = array_shift($list);
@@ -270,6 +341,5 @@ class NoEval
 		}
 
 		return $result;
-
 	}
 }
