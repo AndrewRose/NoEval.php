@@ -43,12 +43,21 @@ class NoEval
 	{
 		if(!is_array($list))
 		{
-			return $list;
+			return $this->parseVar($list, $vars);
+		}
+
+		if(sizeof($list) == 1)
+		{
+			return $this->evalList($this->parseVar(array_shift($list), $vars), $vars);
 		}
 
 		foreach($list as $tmp => &$a)
 		{
-			if(!is_array($a))
+			if(is_array($a))
+			{
+				$a = $this->evalList($a, $vars);
+			}
+			else if(!is_array($a))
 			{
 				$op = (string)$a;
 				switch($op)
@@ -63,8 +72,11 @@ class NoEval
 
 						if($cx = array_shift($list))
 						{
-							$this->evalList($cx, $vars);
+							return $this->evalList($cx, $vars);
 						}
+
+						return [];
+// TODO: what do we return?
 					}
 					break;
 
@@ -73,7 +85,7 @@ class NoEval
 						array_shift($list); // remove defun op
 						$fncName = array_shift($list);
 						$this->subs[$fncName] = $list;
-						return;
+						return strtoupper($fncName);
 					}
 					break;
 
@@ -92,7 +104,6 @@ class NoEval
 						{
 							return $this->evalList($falseBranch, $vars);
 						}
-						return;
 					}
 					break;
 
@@ -108,7 +119,7 @@ class NoEval
 						}
 
 						$tmp = $cond;
-						while($this->evalList($tmp, $vars))
+						while(($return = $this->evalList($tmp, $vars)))
 						{
 							$tmp = $cond;
 							$tmp2 = $body;
@@ -117,14 +128,12 @@ class NoEval
 								$this->evalList($e, $vars);
 							}
 						}
+
+						return [];
+// TODO: what do we return?
 					}
 					break;
 				}
-			}
-
-			if(is_array($a))
-			{
-				$a = $this->evalList($a, $vars);
 			}
 		}
 
@@ -135,46 +144,46 @@ class NoEval
 		{
 			case 'and':
 			{
-				$result = TRUE;
 				$listSize = sizeof($list);
 				// we can't directly array_shift in a while loop due to NULL/FALSE
 				for($idx=0; $idx<$listSize; $idx++)
 				{
 					if($this->parseVar(array_shift($list), $vars) !== TRUE)
 					{
-						$result = FALSE;
+						return FALSE;
 					}
 				}
+				return TRUE;
 			}
 			break;
 
 			case 'not':
 			{
-				$result = TRUE;
 				$listSize = sizeof($list);
 				for($idx=0; $idx<$listSize; $idx++)
 				{
 					if($this->parseVar(array_shift($list), $vars) !== FALSE)
 					{
-						$result = FALSE;
+						return FALSE;
 					}
 				}
+				return TRUE;
 			}
 			break;
 
 			case 'or':
 			{
-				$result = FALSE;
 				$listSize = sizeof($list);
 				for($idx=0; $idx<$listSize; $idx++)
 				{
 					if($this->parseVar(array_shift($list), $vars) === TRUE)
 					{
 
-						$result = TRUE;
-						continue 2;
+						return TRUE;
+						//continue 2; // dumb
 					}
 				}
+				return FALSE;
 			}
 			break;
 
@@ -182,6 +191,7 @@ class NoEval
 			{
 				$ax = array_shift($list);
 				$vars[$ax]--;
+				return $vars[$ax];
 			}
 			break;
 
@@ -189,71 +199,77 @@ class NoEval
 			{
 				$ax = array_shift($list);
 				$vars[$ax]++;
+				return $vars[$ax];
 			}
 			break;
 
 			case '!=':
 			{
-				$result = TRUE;
 				$ax = array_shift($list);
 				$bx = array_shift($list);
 
 				if($this->parseVar($ax, $vars) == $this->parseVar($bx, $vars))
 				{
-					$result = FALSE;
+					return FALSE;
 				}
+
+				return TRUE;
 			}
 			break;
 
 			case '<':
 			{
-				$result = TRUE;
-				$ax = array_shift($list);
-				$bx = array_shift($list);
-
-				if($this->parseVar($ax, $vars) > $this->parseVar($bx, $vars))
-				{
-					$result = FALSE;
-				}
-			}
-			break;
-
-			case '>':
-			{
-				$result = TRUE;
-				$ax = array_shift($list);
-				$bx = array_shift($list);
-
-				if($this->parseVar($ax, $vars) < $this->parseVar($bx, $vars))
-				{
-					$result = FALSE;
-				}
-			}
-			break;
-
-			case '<=':
-			{
-				$result = TRUE;
 				$ax = array_shift($list);
 				$bx = array_shift($list);
 
 				if($this->parseVar($ax, $vars) >= $this->parseVar($bx, $vars))
 				{
-					$result = FALSE;
+					return FALSE;
 				}
+
+				return TRUE;
 			}
 			break;
 
-			case '>=':
+			case '>':
 			{
-				$result = TRUE;
 				$ax = array_shift($list);
 				$bx = array_shift($list);
 
 				if($this->parseVar($ax, $vars) <= $this->parseVar($bx, $vars))
 				{
-					$result = FALSE;
+					return FALSE;
 				}
+
+				return TRUE;
+			}
+			break;
+
+			case '<=':
+			{
+				$ax = array_shift($list);
+				$bx = array_shift($list);
+
+				if($this->parseVar($ax, $vars) > $this->parseVar($bx, $vars))
+				{
+					return FALSE;
+				}
+
+				return TRUE;
+			}
+			break;
+
+			case '>=':
+			{
+				$ax = array_shift($list);
+				$bx = array_shift($list);
+
+				if($this->parseVar($ax, $vars) < $this->parseVar($bx, $vars))
+				{
+					return FALSE;
+				}
+
+				return TRUE;
 			}
 			break;
 
@@ -263,6 +279,8 @@ class NoEval
 				{
 					$result += $this->parseVar($val, $vars);
 				}
+
+				return $result;
 			}
 			break;
 
@@ -273,7 +291,7 @@ class NoEval
 				{
 					$ax -= $this->parseVar($val, $vars);
 				}
-				$result = $ax;
+				return $ax;
 			}
 			break;
 
@@ -284,7 +302,7 @@ class NoEval
 				{
 					$ax *= $this->parseVar($val, $vars);
 				}
-				$result = $ax;
+				return $ax;
 			}
 			break;
 
@@ -295,27 +313,30 @@ class NoEval
 				{
 					$ax %= $val;
 				}
-				$result = $ax;
+				return $ax;
 			}
 			break;
 
 			case '=':
 			{
-				$result = TRUE;
 				$ax = $this->parseVar(array_pop($list), $vars);
 				foreach($list as $val)
 				{
 					if($this->parseVar($val, $vars) != $ax)
 					{
-						$result = FALSE;
+						return FALSE;
 					}
 				}
+
+				return TRUE;
 			}
 			break;
 
 			case 'echo':
 			{
 				echo "echo>> ".$this->parseVar(array_shift($list), $vars)."\n";
+				return TRUE;
+//TODO: return string?
 			}
 			break;
 
@@ -328,9 +349,10 @@ class NoEval
 					{
 						$vals[':'.$idx] = $this->parseVar($val, $vars);
 					}
-
 					$tmp = $this->subs[$op];
-					$result = $this->evalList($tmp, $vals);
+					$t = $this->evalList($tmp, $vals);
+//print_r($t);
+					return ($t);
 				}
 				else
 				{
@@ -339,7 +361,8 @@ class NoEval
 			}
 			break;
 		}
-
-		return $result;
+//return $list;
+		print_r($list);
+		exit("We shouldn't be here!\n");
 	}
 }
