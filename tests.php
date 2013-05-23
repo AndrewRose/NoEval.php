@@ -29,23 +29,20 @@ $t = new NoEval;
 $debugMode = FALSE;
 
 $tests = [[
-	'run' => FALSE,
-	'description' => 'Fizzbuzz - works but small issue that I am currently working on..',
-	'code' => ["let", ":i", 1, [["echo", "Fizzbuzz example"],
-		["while", ["<", ":i", ["+", 100, 1]],
-			["if", ["=", ["%", ":i", 3], 0],
-				["if", ["=", ["%", ":i", 5], 0],
-					["echo", "FizzBuzz"],
-					["echo", "Fizz"]
-				],
-				["if", ["=", ["%", ":i", 5], 0],
-					["echo", "Buzz"],
-					["echo", ":i"]
-				],
+	'description' => 'Fizzbuzz example',
+	'code' => ["let", ":i", 1, ["while", ["<", ":i", ["+", 100, 1]],
+		["if", ["=", ["%", ":i", 3], 0],
+			["if", ["=", ["%", ":i", 5], 0],
+				["echo", "FizzBuzz"],
+				["echo", "Fizz"]
 			],
-			["++", ":i"]
-		]]
-	],
+			["if", ["=", ["%", ":i", 5], 0],
+				["echo", "Buzz"],
+				["echo", ":i"]
+			],
+		],
+		["++", ":i"]
+	]],
 	'vars' => [],
 	'result' => [],
 	'debug' => FALSE
@@ -143,12 +140,14 @@ $tests = [[
 echo "Running tests..\n";
 foreach(array_reverse($tests) as $test)
 {
-	if(!($debugMode || $test['debug']) && !(isset($test['run']) && !$test['run']))
+	if(!$debugMode || ($debugMode && $test['debug']))
 	{
 		echo $test['description'].'...';
+		ob_start();
 		$result =  $t->parse($test['code'], $test['vars']);
 		if($test['result'] !== $result)
 		{
+			echo ob_get_contents();
 			echo "FAILED!\n";
 			echo '>>>';
 			print_r($result);
@@ -156,6 +155,7 @@ foreach(array_reverse($tests) as $test)
 		}
 		else
 		{
+			ob_end_clean();
 			echo "pass.\n";
 		}
 	}

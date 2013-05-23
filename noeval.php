@@ -72,7 +72,7 @@ class NoEval
 
 						if($cx = array_shift($list))
 						{
-							return $this->evalList($cx, $vars);
+							$this->evalList($cx, $vars);
 						}
 
 						return [];
@@ -334,9 +334,9 @@ class NoEval
 
 			case 'echo':
 			{
-				echo "echo>> ".$this->parseVar(array_shift($list), $vars)."\n";
-				return TRUE;
-//TODO: return string?
+				$ax = $this->parseVar(array_shift($list), $vars);
+				echo $ax;
+				return $ax;
 			}
 			break;
 
@@ -351,8 +351,7 @@ class NoEval
 					}
 					$tmp = $this->subs[$op];
 					$t = $this->evalList($tmp, $vals);
-//print_r($t);
-					return ($t);
+					return $t;
 				}
 				else
 				{
@@ -361,7 +360,7 @@ class NoEval
 			}
 			break;
 		}
-//return $list;
+
 		print_r($list);
 		exit("We shouldn't be here!\n");
 	}
